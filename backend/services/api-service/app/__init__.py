@@ -2,7 +2,7 @@ from flask import Flask
 from supabase import create_client, Client
 
 def create_app():
-    app = Flask(__name__)
+    app = Flask("api_service")
     app.config.from_object("app.config.Config")
 
     supabase_url = app.config.get("SUPABASE_URL")
