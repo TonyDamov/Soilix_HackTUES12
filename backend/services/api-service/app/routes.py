@@ -109,6 +109,7 @@ def connect_device():
     except:
         return jsonify({"message": "Failed to connect device"}), 400
 
+
 @api_bp.route("/api/devices/disconnect", methods=["POST"])
 @require_auth
 def disconnect_device():
@@ -130,3 +131,24 @@ def disconnect_device():
     except:
         return jsonify({"message": "Failed to disconnect device"}), 400
     
+
+@api_bp.route("/api/devices/<device_id>", methods=["PATCH"])
+@require_auth
+def rename(device_id): 
+    user = request.user
+    supabase = current_app.extensions.get("supabase_client")
+
+    data = request.json
+    new_name = data.get("device_name")
+    if not new_name:
+        return jsonify({"message": "Device name is required"}), 400
+    try:
+        device_res = supabase.from_("devices").select("*").eq("id", device_id).execute()
+        device = device_res.data[0]
+        if device["owner_id"] != user.id:
+            return jsonify({"message": "Device is not connected to you"}), 400
+        response = supabase.table("devices").update({"device_name": new_name}).eq("id", device_id).execute()
+        return jsonify({"message": "Device renamed successfully",
+                        "name": new_name}), 200
+    except:
+        return jsonify({"message": "Failed to rename device"}), 400
