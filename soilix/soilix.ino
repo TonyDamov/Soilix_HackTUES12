@@ -17,7 +17,7 @@ SoftwareSerial sim800(SIM800_RX_PIN, SIM800_TX_PIN);
 bool sht4Found  = false;
 bool bmpFound = false;
 unsigned long lastTransmission = 0;
-unsigned long currentInterval = 60000UL; 
+unsigned long currentInterval = 840000UL; 
 
 void setup() {
   Serial.begin(9600);
@@ -36,8 +36,10 @@ void setup() {
 }
 
 void loop() {
-  while (sim800.available()) { Serial.write(sim800.read()); }
-  while (Serial.available()) { sim800.write(Serial.read()); }
+  #ifdef DEBUG
+    while (sim800.available()) { Serial.write(sim800.read()); }
+    while (Serial.available()) { sim800.write(Serial.read()); }
+  #endif
 
   if (millis() - lastTransmission >= currentInterval) {
     lastTransmission = millis();

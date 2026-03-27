@@ -4,7 +4,7 @@ void initNetwork() {
 
   Serial.println(F("[SIM] Waiting for network registration..."));
   while (!sendATCommand("AT+CREG?", "+CREG: 0,1", 2000)) {
-    Serial.println(F("[SIM] Not registered yet, retrying in 2s..."));
+    DEBUG_PRINTLN(F("[SIM] Not registered yet, retrying in 2s..."));
     delay(2000);
   }
   Serial.println(F("[SIM] Network registered!"));
@@ -21,8 +21,8 @@ void configureGPRS() {
     copsResponse += (char)sim800.read();
   }
   
-  Serial.print(F("[SIM] AT+COPS? response: "));
-  Serial.println(copsResponse);
+  DEBUG_PRINT(F("[SIM] AT+COPS? response: "));
+  DEBUG_PRINTLN(copsResponse);
 
   const char* apn  = NULL;
   const char* user = NULL;
@@ -33,8 +33,8 @@ void configureGPRS() {
       apn  = BG_OPERATORS[i].apn;
       user = BG_OPERATORS[i].user;
       pass = BG_OPERATORS[i].pass;
-      Serial.print(F("[SIM] Detected MCC/MNC: "));
-      Serial.println(BG_OPERATORS[i].mccmnc);
+      DEBUG_PRINT(F("[SIM] Detected MCC/MNC: "));
+      DEBUG_PRINTLN(BG_OPERATORS[i].mccmnc);
       break;
     }
   }
@@ -64,7 +64,7 @@ void configureGPRS() {
 String sendHTTPRequest(const String& url, const String& payload, bool getData) {
   String responseBody = "";
 
-  Serial.println(F("[HTTP] Starting request..."));
+  DEBUG_PRINTLN(F("[HTTP] Starting request..."));
   sendATCommand("AT+HTTPINIT", "OK", 2000);
   sendATCommand("AT+HTTPPARA=\"CID\",1", "OK", 2000);
   sendATCommand("AT+HTTPPARA=\"URL\",\"" + url + "\"", "OK", 2000);
@@ -78,7 +78,7 @@ String sendHTTPRequest(const String& url, const String& payload, bool getData) {
     
     if (sendATCommand("AT+HTTPACTION=1", "+HTTPACTION:", 10000)) {
       if (getData) {
-        Serial.println(F("[HTTP] Reading server response..."));
+        DEBUG_PRINTLN(F("[HTTP] Reading server response..."));
         sim800.println(F("AT+HTTPREAD"));
         
         String rawResponse = "";
@@ -101,13 +101,13 @@ String sendHTTPRequest(const String& url, const String& payload, bool getData) {
           }
         }
       } else {
-        Serial.println(F("[HTTP] Action successful. Skipping response read."));
+        DEBUG_PRINTLN(F("[HTTP] Action successful. Skipping response read."));
       }
     } else {
-      Serial.println(F("[HTTP] ERROR: Action failed."));
+      DEBUG_PRINTLN(F("[HTTP] ERROR: Action failed."));
     }
   } else {
-    Serial.println(F("[HTTP] ERROR: Module did not enter DOWNLOAD mode."));
+    DEBUG_PRINTLN(F("[HTTP] ERROR: Module did not enter DOWNLOAD mode."));
   }
 
   sendATCommand("AT+HTTPTERM", "OK", 2000);
@@ -115,11 +115,11 @@ String sendHTTPRequest(const String& url, const String& payload, bool getData) {
 }
 
 void postDataToServer() {
-  Serial.println(F("\n[DATA] Reading sensors..."));
+  DEBUG_PRINTLN(F("\n[DATA] Reading sensors..."));
   
   String payload = getSensorPayload();
-  Serial.print(F("[DATA] Payload: "));
-  Serial.println(payload);
+  DEBUG_PRINT(F("[DATA] Payload: "));
+  DEBUG_PRINTLN(payload);
 
   String returnedData = sendHTTPRequest(SERVER_URL, payload); 
 
@@ -127,14 +127,14 @@ void postDataToServer() {
     long newInterval = returnedData.toInt();
     if (newInterval > 0 && newInterval <= 43200000UL) {
       currentInterval = (unsigned long)newInterval;
-      Serial.print(F("[HTTP] Success! Interval updated to: "));
-      Serial.print(currentInterval);
-      Serial.println(F(" ms"));
+      DEBUG_PRINT(F("[HTTP] Success! Interval updated to: "));
+      DEBUG_PRINT(currentInterval);
+      DEBUG_PRINTLN(F(" ms"));
     } else {
-      Serial.println(F("[HTTP] Returned value invalid or > 12 hours. Keeping current interval."));
+      DEBUG_PRINTLN(F("[HTTP] Returned value invalid or > 12 hours. Keeping current interval."));
     }
   } else {
-    Serial.println(F("[HTTP] Data sent successfully!"));
+    DEBUG_PRINTLN(F("[HTTP] Data sent successfully!"));
   }
 }
 
@@ -149,15 +149,15 @@ bool sendATCommand(String command, const char* expectedResponse, unsigned long t
       response += (char)sim800.read();
     }
     if (response.indexOf(expectedResponse) != -1) {
-      Serial.print(F("[AT] OK  << "));
-      Serial.println(command);
+      DEBUG_PRINT(F("[AT] OK  << "));
+      DEBUG_PRINTLN(command);
       return true;
     }
   }
 
-  Serial.print(F("[AT] FAIL << "));
-  Serial.println(command);
-  Serial.print(F("[AT] Got  : "));
-  Serial.println(response);
+  DEBUG_PRINT(F("[AT] FAIL << "));
+  DEBUG_PRINTLN(command);
+  DEBUG_PRINT(F("[AT] Got  : "));
+  DEBUG_PRINTLN(response);
   return false;
 }
