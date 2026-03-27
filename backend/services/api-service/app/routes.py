@@ -1,5 +1,6 @@
 from flask import Blueprint, request, Response, jsonify, current_app
 from .middleware import require_auth
+from datetime import datetime
 
 api_bp = Blueprint("api", __name__)
 
@@ -107,3 +108,25 @@ def connect_device():
             return jsonify({"message": "Device is already connected to another user"}), 400
     except:
         return jsonify({"message": "Failed to connect device"}), 400
+
+@api_bp.route("/api/devices/disconnect", methods=["POST"])
+@require_auth
+def disconnect_device():
+    user = request.user
+    supabase = current_app.extensions.get("supabase_client")
+
+    data = request.json
+    device_id = data.get("device_id")
+    if not device_id:
+        return jsonify({"message": "Device ID is required"}), 400
+    
+    try:
+        device_res = supabase.from_("devices").select("*").eq("id", device_id).execute()
+        device = device_res.data[0]
+        if device["owner_id"] != user.id:
+            return jsonify({"message": "Device is not connected to you"}), 400
+        response = supabase.table("devices").update({"owner_id": None, "device_name":"Soilix Device"}).eq("id", device_id).execute()
+        return jsonify({"message": "Device disconnected successfully"}), 200
+    except:
+        return jsonify({"message": "Failed to disconnect device"}), 400
+    
