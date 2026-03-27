@@ -1,7 +1,7 @@
 from flask import Blueprint, request, Response, jsonify, current_app
 from .middleware import require_auth
-from datetime import datetime
-
+from datetime import datetime, timedelta
+from pytimeparse import parse 
 api_bp = Blueprint("api", __name__)
 
 
@@ -231,7 +231,32 @@ def last_reading_device_user(device_id):
                 "soil_temp_c": None,
                 "recorded_at": None
             }
-        
         return jsonify(result), 200
     except:
         return jsonify({"message": "Failed to fetch live reading"}), 400
+
+
+@api_bp.route("/api/devices/<device_id>/history", methods=["GET"])
+@require_auth
+def device_history(device_id):
+    user = request.user
+    time_range = request.args.get("range")
+    seconds = parse(time_range)
+    if seconds is None:
+        return jsonify({"message": "Invalid time range format"}), 400   
+    start_time = datetime.utcnow() - timedelta(seconds=seconds)
+    
+    supabase = current_app.extensions.get("supabase_client")
+
+    try:
+        device_res = supabase.from_("devices").select("*").eq("id", device_id).execute()
+        device = device_res.data[0]
+        if device["owner_id"] != user.id:
+            return jsonify({"message": "Device is not connected to you"}), 400
+        readings_res = supabase.from_("device_readings").select("*").eq("device_id", device_id).gte("recorded_at", start_time).order("recorded_at", desc=True).execute()
+        readings = readings_res.data
+        return jsonify({"readings": readings}), 200
+    except Exception as e:
+        error = str(e)
+        return jsonify({"message": "Failed to fetch device history",
+                        "error":error}), 400
