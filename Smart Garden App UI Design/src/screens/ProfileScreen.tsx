@@ -1,9 +1,8 @@
-import React, { useState } from "react";
+import React from "react";
 import { Alert, StyleSheet, Text, View } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 import { AppButton } from "../components/AppButton";
-import { ConfirmModal } from "../components/ConfirmModal";
 import { Screen } from "../components/Screen";
 import { SectionCard } from "../components/SectionCard";
 import { useAuth } from "../context/AuthContext";
@@ -13,73 +12,49 @@ import { colors } from "../theme/colors";
 type Props = BottomTabScreenProps<MainTabParamList, "Profile">;
 
 export function ProfileScreen(_: Props) {
-  const { user, logout, deleteAccount } = useAuth();
-  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const { user, logout } = useAuth();
 
   const handleLogout = async () => {
     await logout();
     Alert.alert("Logged out", "Your demo session has ended.");
   };
 
-  const handleDelete = async () => {
-    setLoading(true);
-    await deleteAccount();
-    setLoading(false);
-    setDeleteModalVisible(false);
-    Alert.alert("Account deleted", "The demo account has been removed.");
-  };
-
   return (
-    <>
-      <Screen>
-        <View style={styles.header}>
-          <Text style={styles.title}>Profile</Text>
-          <Text style={styles.subtitle}>Manage your account and garden app settings.</Text>
+    <Screen>
+      <View style={styles.header}>
+        <Text style={styles.title}>Profile</Text>
+        <Text style={styles.subtitle}>Manage your account and garden app settings.</Text>
+      </View>
+
+      <SectionCard style={styles.profileCard}>
+        <View style={styles.avatar}>
+          <MaterialCommunityIcons name="account-outline" size={34} color="#ffffff" />
         </View>
-
-        <SectionCard style={styles.profileCard}>
-          <View style={styles.avatar}>
-            <MaterialCommunityIcons name="account-outline" size={34} color="#ffffff" />
-          </View>
-          <View style={styles.infoWrap}>
-            <Text style={styles.infoLabel}>Logged in as</Text>
-            <Text style={styles.infoValue}>{user?.email ?? "No user"}</Text>
-          </View>
-        </SectionCard>
-
-        <SectionCard style={styles.aboutCard}>
-          <View style={styles.aboutHeader}>
-            <View style={styles.leafBadge}>
-              <MaterialCommunityIcons name="leaf" size={24} color="#ffffff" />
-            </View>
-            <View>
-              <Text style={styles.appName}>SmartGarden Native</Text>
-              <Text style={styles.appVersion}>Version 1.0.0</Text>
-            </View>
-          </View>
-          <Text style={styles.aboutCopy}>
-            Track soil and climate conditions in a mobile-first experience built for React Native.
-          </Text>
-        </SectionCard>
-
-        <View style={styles.actions}>
-          <AppButton title="Log Out" onPress={handleLogout} variant="secondary" />
-          <AppButton title="Delete Account" onPress={() => setDeleteModalVisible(true)} variant="danger" />
+        <View style={styles.infoWrap}>
+          <Text style={styles.infoLabel}>Logged in as</Text>
+          <Text style={styles.infoValue}>{user?.email ?? "No user"}</Text>
         </View>
-      </Screen>
+      </SectionCard>
 
-      <ConfirmModal
-        visible={deleteModalVisible}
-        title="Delete Account"
-        description="Delete your account and clear the demo profile session? This cannot be undone."
-        confirmLabel="Delete"
-        confirmVariant="danger"
-        loading={loading}
-        onCancel={() => setDeleteModalVisible(false)}
-        onConfirm={handleDelete}
-      />
-    </>
+      <SectionCard style={styles.aboutCard}>
+        <View style={styles.aboutHeader}>
+          <View style={styles.leafBadge}>
+            <MaterialCommunityIcons name="leaf" size={24} color="#ffffff" />
+          </View>
+          <View>
+            <Text style={styles.appName}>SmartGarden Native</Text>
+            <Text style={styles.appVersion}>Version 1.0.0</Text>
+          </View>
+        </View>
+        <Text style={styles.aboutCopy}>
+          Track soil and climate conditions in a mobile-first experience built for React Native.
+        </Text>
+      </SectionCard>
+
+      <View style={styles.actions}>
+        <AppButton title="Log Out" onPress={handleLogout} variant="secondary" />
+      </View>
+    </Screen>
   );
 }
 

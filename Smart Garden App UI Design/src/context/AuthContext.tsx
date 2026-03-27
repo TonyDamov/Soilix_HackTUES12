@@ -14,7 +14,6 @@ type AuthContextType = {
   login: (email: string, password: string) => Promise<void>;
   signup: (email: string, password: string, confirmPassword: string) => Promise<void>;
   logout: () => Promise<void>;
-  deleteAccount: () => Promise<void>;
 };
 
 type AuthResponse = {
@@ -95,14 +94,8 @@ export function AuthProvider({ children }: React.PropsWithChildren) {
     setUser(null);
   };
 
-  const deleteAccount = async () => {
-    // There is no backend delete-account endpoint yet, so for now
-    // we only clear the local session to keep the UI flow usable.
-    setUser(null);
-  };
-
   return (
-    <AuthContext.Provider value={{ user, login, signup, logout, deleteAccount }}>
+    <AuthContext.Provider value={{ user, login, signup, logout }}>
       {children}
     </AuthContext.Provider>
   );
