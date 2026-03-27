@@ -33,6 +33,7 @@ void setup() {
 
   initSensors();
   initNetwork();
+  postDataToServer();
 }
 
 void loop() {
