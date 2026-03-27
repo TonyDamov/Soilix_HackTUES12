@@ -39,14 +39,11 @@ def signup():
         response = supabase.auth.sign_up({"email": email, "password": password, "options": {"data": {"display_name": display_name}}})
     except:
         return jsonify({"message": "Signup failed"}), 400
-
-    return Response(jsonify({
+    
+    return jsonify({
         "message": "Signup successful",
-        "display_name": response.user.user_metadata.display_name,
-        "refresh_token": response.session.refresh_token,
-        "access_token": response.session.access_token
-    }), 
-    status=201)
+        "display_name": response.user.user_metadata.get("display_name", "")
+    }), 201
 
 # Logout endpoint - since Supabase doesn't have a server-side logout, we just return success and let the client delete tokens
 @api_bp.route("/api/auth/logout", methods=["POST"])
