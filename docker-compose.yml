@@ -3,13 +3,24 @@ services:
     build: ./backend/services/api-service
     ports:
       - "5000:5000"
+    volumes:
+      - ./backend/services/api-service:/app
+
     environment:
       - SUPABASE_URL=${SUPABASE_URL}
       - SUPABASE_KEY=${SUPABASE_KEY}
       
       - FLASK_ENV=development
+      - FLASK_DEBUG=1 # remove when debugging is over
 
   device:
     build: ./backend/services/device-service
     ports:
       - "5001:5001"
+    volumes:
+      - ./backend/services/device-service:/app
+
+    environment:
+      - FLASK_ENV=development
+      - FLASK_DEBUG=1 # remove when debugging is over
+
