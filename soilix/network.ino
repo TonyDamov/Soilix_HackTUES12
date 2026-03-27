@@ -74,7 +74,16 @@ String sendHTTPRequest(const String& url, const String& payload, bool getData) {
 
   if (sendATCommand(dataCmd, "DOWNLOAD", 3000)) {
     sim800.print(payload);
-    delay(1000); 
+    
+    // wait for the data to be accepted by the module
+    unsigned long waitTimer = millis();
+    String payloadResponse = "";
+    while (millis() - waitTimer < 5000) {
+      while (sim800.available()) {
+        payloadResponse += (char)sim800.read();
+      }
+      if (payloadResponse.indexOf("OK") != -1) break;
+    }
     
     if (sendATCommand("AT+HTTPACTION=1", "+HTTPACTION:", 10000)) {
       if (getData) {
