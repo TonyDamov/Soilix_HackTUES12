@@ -195,3 +195,43 @@ def last_reading_all_devices_user():
     except:
         return jsonify({"message": "Failed to fetch live readings"}), 400
 
+
+@api_bp.route("/api/devices/<device_id>/live", methods=["GET"]) 
+@require_auth
+def last_reading_device_user(device_id):
+    user = request.user
+    supabase = current_app.extensions.get("supabase_client")
+
+    try:
+        device_res = supabase.from_("devices").select("*").eq("id", device_id).execute()
+        device = device_res.data[0]
+        if device["owner_id"] != user.id:
+            return jsonify({"message": "Device is not connected to you"}), 400
+        reading_res = supabase.from_("device_readings").select("*").eq("device_id", device_id).order("recorded_at", desc=True).limit(1).execute()
+        if reading_res.data:
+            last_reading = reading_res.data[0]
+            result = {
+                "device_id": device["id"],
+                "device_name": device["device_name"],
+                "air_temp_c": last_reading["air_temp_c"],
+                "air_humidity_pct": last_reading["air_humidity_pct"],
+                "air_pressure_hpa": last_reading["air_pressure_hpa"],
+                "soil_humidity_pct": last_reading["soil_humidity_pct"],
+                "soil_temp_c": last_reading["soil_temp_c"],
+                "recorded_at": last_reading["recorded_at"]
+            }
+        else:
+            result = {
+                "device_id": device["id"],
+                "device_name": device["device_name"],
+                "air_temp_c": None,
+                "air_humidity_pct": None,
+                "air_pressure_hpa": None,
+                "soil_humidity_pct": None,
+                "soil_temp_c": None,
+                "recorded_at": None
+            }
+        
+        return jsonify(result), 200
+    except:
+        return jsonify({"message": "Failed to fetch live reading"}), 400
