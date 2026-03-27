@@ -14,6 +14,8 @@ export type Device = {
   id: string;
   name: string;
   readings: SensorReading;
+  hasLiveData: boolean;
+  recordedAt: string | null;
 };
 
 export type HistoricalData = {
@@ -36,8 +38,14 @@ type DeviceContextType = {
 };
 
 type BackendDevice = {
-  id: string | number;
+  device_id: string | number;
   device_name?: string | null;
+  air_temp_c?: number | null;
+  air_humidity_pct?: number | null;
+  air_pressure_hpa?: number | null;
+  soil_humidity_pct?: number | null;
+  soil_temp_c?: number | null;
+  recorded_at?: string | null;
 };
 
 type DevicesResponse = {
@@ -96,15 +104,26 @@ export function DeviceProvider({ children }: React.PropsWithChildren) {
     setError("");
 
     try {
-      const response = await apiRequest<DevicesResponse>("/api/devices", {
-        headers: getBearerAuthHeaders(user.accessToken),
-      });
+      const response = await fetchDevices(user.accessToken);
 
       setDevices(
         response.devices.map((device) => ({
-          id: String(device.id),
-          name: device.device_name?.trim() || `Soilix Device ${device.id}`,
-          readings: generateMockReading(),
+          id: String(device.device_id),
+          name: device.device_name?.trim() || `Soilix Device ${device.device_id}`,
+          readings: {
+            airTemp: device.air_temp_c ?? 0,
+            airHumidity: device.air_humidity_pct ?? 0,
+            airPressure: device.air_pressure_hpa ?? 0,
+            soilHumidity: device.soil_humidity_pct ?? 0,
+            soilTemp: device.soil_temp_c ?? 0,
+          },
+          hasLiveData:
+            device.air_temp_c !== null &&
+            device.air_humidity_pct !== null &&
+            device.air_pressure_hpa !== null &&
+            device.soil_humidity_pct !== null &&
+            device.soil_temp_c !== null,
+          recordedAt: device.recorded_at ?? null,
         })),
       );
     } catch (err) {
@@ -187,6 +206,38 @@ export function DeviceProvider({ children }: React.PropsWithChildren) {
       {children}
     </DeviceContext.Provider>
   );
+}
+
+async function fetchDevices(accessToken: string) {
+  try {
+    return await apiRequest<DevicesResponse>("/api/devices/live", {
+      headers: getBearerAuthHeaders(accessToken),
+    });
+  } catch (error) {
+    if (error instanceof Error && error.message === "Request failed with status 404") {
+      const fallbackResponse = await apiRequest<{ devices: Array<{ id: string | number; device_name?: string | null }> }>(
+        "/api/devices",
+        {
+          headers: getBearerAuthHeaders(accessToken),
+        },
+      );
+
+      return {
+        devices: fallbackResponse.devices.map((device) => ({
+          device_id: device.id,
+          device_name: device.device_name,
+          air_temp_c: null,
+          air_humidity_pct: null,
+          air_pressure_hpa: null,
+          soil_humidity_pct: null,
+          soil_temp_c: null,
+          recorded_at: null,
+        })),
+      };
+    }
+
+    throw error;
+  }
 }
 
 export function useDevices() {

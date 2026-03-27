@@ -87,7 +87,9 @@ export function HomeScreen({ navigation }: Props) {
                 <View style={styles.deviceHeader}>
                   <View>
                     <Text style={styles.deviceName}>{device.name}</Text>
-                    <Text style={styles.deviceSub}>Live environmental readings</Text>
+                    <Text style={styles.deviceSub}>
+                      {device.hasLiveData ? "Live environmental readings" : "No live readings yet"}
+                    </Text>
                   </View>
                   <MaterialCommunityIcons name="chevron-right" size={24} color="#7b9681" />
                 </View>
@@ -95,31 +97,31 @@ export function HomeScreen({ navigation }: Props) {
                 <MetricPill
                   icon="thermometer"
                   label="Air Temperature"
-                  value={`${device.readings.airTemp}C`}
+                  value={formatMetricValue(device.readings.airTemp, "C", device.hasLiveData)}
                   tint="#f28b37"
                 />
                 <MetricPill
                   icon="water-percent"
                   label="Air Humidity"
-                  value={`${device.readings.airHumidity}%`}
+                  value={formatMetricValue(device.readings.airHumidity, "%", device.hasLiveData)}
                   tint="#4d96d8"
                 />
                 <MetricPill
                   icon="gauge"
                   label="Air Pressure"
-                  value={`${device.readings.airPressure} hPa`}
+                  value={formatMetricValue(device.readings.airPressure, " hPa", device.hasLiveData)}
                   tint="#9566d8"
                 />
                 <MetricPill
                   icon="sprout"
                   label="Soil Humidity"
-                  value={`${device.readings.soilHumidity}%`}
+                  value={formatMetricValue(device.readings.soilHumidity, "%", device.hasLiveData)}
                   tint="#4aaf5d"
                 />
                 <MetricPill
                   icon="thermometer-lines"
                   label="Soil Temperature"
-                  value={`${device.readings.soilTemp}C`}
+                  value={formatMetricValue(device.readings.soilTemp, "C", device.hasLiveData)}
                   tint="#c88f31"
                 />
               </SectionCard>
@@ -228,3 +230,11 @@ const styles = StyleSheet.create({
     fontSize: 13,
   },
 });
+
+function formatMetricValue(value: number, unit: string, hasLiveData: boolean) {
+  if (!hasLiveData) {
+    return "N/A";
+  }
+
+  return `${value.toFixed(1)}${unit}`;
+}

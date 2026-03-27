@@ -62,15 +62,19 @@ export function DeviceDetailsScreen({ navigation, route }: Props) {
         <SectionCard style={styles.titleCard}>
           <Text style={styles.deviceLabel}>Connected Device</Text>
           <Text style={styles.deviceTitle}>{device.name}</Text>
-          <Text style={styles.deviceCopy}>Realtime greenhouse and soil health overview.</Text>
+          <Text style={styles.deviceCopy}>
+            {device.hasLiveData
+              ? "Realtime greenhouse and soil health overview."
+              : "This device is connected, but no live sensor reading has been received yet."}
+          </Text>
         </SectionCard>
 
         <SectionCard style={styles.metricsCard}>
-          <MetricPill icon="gauge" label="Air Pressure" value={`${device.readings.airPressure} hPa`} tint="#9566d8" />
-          <MetricPill icon="water-percent" label="Air Humidity" value={`${device.readings.airHumidity}%`} tint="#4d96d8" />
-          <MetricPill icon="sprout" label="Soil Humidity" value={`${device.readings.soilHumidity}%`} tint="#4aaf5d" />
-          <MetricPill icon="thermometer" label="Air Temperature" value={`${device.readings.airTemp}C`} tint="#f28b37" />
-          <MetricPill icon="thermometer-lines" label="Soil Temperature" value={`${device.readings.soilTemp}C`} tint="#c88f31" />
+          <MetricPill icon="gauge" label="Air Pressure" value={formatMetricValue(device.readings.airPressure, " hPa", device.hasLiveData)} tint="#9566d8" />
+          <MetricPill icon="water-percent" label="Air Humidity" value={formatMetricValue(device.readings.airHumidity, "%", device.hasLiveData)} tint="#4d96d8" />
+          <MetricPill icon="sprout" label="Soil Humidity" value={formatMetricValue(device.readings.soilHumidity, "%", device.hasLiveData)} tint="#4aaf5d" />
+          <MetricPill icon="thermometer" label="Air Temperature" value={formatMetricValue(device.readings.airTemp, "C", device.hasLiveData)} tint="#f28b37" />
+          <MetricPill icon="thermometer-lines" label="Soil Temperature" value={formatMetricValue(device.readings.soilTemp, "C", device.hasLiveData)} tint="#c88f31" />
         </SectionCard>
 
         <IllustratedGarden readings={device.readings} />
@@ -166,3 +170,11 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
 });
+
+function formatMetricValue(value: number, unit: string, hasLiveData: boolean) {
+  if (!hasLiveData) {
+    return "N/A";
+  }
+
+  return `${value.toFixed(1)}${unit}`;
+}
