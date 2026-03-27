@@ -14,6 +14,10 @@ def send_reading(device_id):
     entry = {"device_id": device_id.strip(), "air_temp_c": float(params[0]), "air_humidity_pct": float(params[1]) ,
                    "air_pressure_hpa": float(params[2]), "soil_humidity_pct": float(params[3]), "soil_temp_c": float(params[4])}
     
+    #-127 is a set error code for any sensor that doesn't work
+    if(entry["air_temp_c"] == -127 or entry["air_humidity_pct"] == -127 or entry["air_pressure_hpa"] == -127 or entry["soil_humidity_pct"] == -127 or entry["soil_temp_c"] == -127):
+        return jsonify({"message": "Faulty sensor. Reading was not stored."}), 502
+
     supabase = current_app.extensions.get("supabase_client")
     try:
         response = supabase.table("device_readings").insert(entry).execute()
