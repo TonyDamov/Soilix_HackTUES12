@@ -11,6 +11,3 @@ class Config:
     # Database
     SUPABASE_URL = os.getenv("SUPABASE_URL")
     SUPABASE_KEY = os.getenv("SUPABASE_KEY")
-
-    # Service communication
-    DEVICE_SERVICE_URL = os.getenv("DEVICE_SERVICE_URL")
