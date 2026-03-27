@@ -23,13 +23,13 @@
 #define SIM800_RST_PIN 11
 
 // --- Server Settings ---
-#define DEVICE_ID   "f9a2c209-c862-47db-b674-42eca22a6653"
-#define SERVER_URL  "http://195.68.215.115/device/reading/" DEVICE_ID
+#define DEVICE_ID   "f9a2c209-c862-47db-b674-42eca22a6653" // set when manufactured
+#define SERVER_URL  "http://195.68.215.115/device/reading/" DEVICE_ID // via proxy due to missing tls support
 
 // --- Timing ---
 #define SIM_BOOT_DELAY_MS 3000UL   
 
-// --- APN Configuration ---
+// --- APN Configuration --- (only BG for now)
 struct OperatorAPN {
   const char* mccmnc;
   const char* apn;
@@ -45,7 +45,7 @@ const OperatorAPN BG_OPERATORS[] = {
 
 const uint8_t BG_OPERATORS_COUNT = sizeof(BG_OPERATORS) / sizeof(BG_OPERATORS[0]);
 
-// --- Sensor Calibration ---
+// --- Sensor Calibration --- (calibrated during manufacturing)
 #define SOIL_DRY_VALUE 450
 #define SOIL_WET_VALUE 198
 
