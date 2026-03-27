@@ -189,8 +189,9 @@ def last_reading_all_devices_user():
                     "soil_temp_c": None,
                     "recorded_at": None
                 })
+        
+        result.sort(key=lambda x: x["device_name"])
         return jsonify({"devices": result}), 200
-    except Exception as e:
-        error = str(e)
-        return jsonify({"message": "Failed to fetch live readings",
-                        "error": error}), 400
+    except:
+        return jsonify({"message": "Failed to fetch live readings"}), 400
+
