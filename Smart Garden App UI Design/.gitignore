@@ -37,6 +37,9 @@ expo-debug.log*
 .env
 .env.*
 !.env.example
+!.env.development.example
+!.env.staging.example
+!.env.production.example
 
 # test / coverage
 coverage/
